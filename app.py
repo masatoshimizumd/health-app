@@ -23,18 +23,14 @@ st.markdown("<h1 style='font-family:Arial,Helvetica,sans-serif;'>smt-health_data
 records = sheet.get_all_records()
 df = pd.DataFrame(records)
 
-# --- 入力フォーム ---
-st.subheader("新しいデータを追加")
-
-with st.form("input_form"):
-
-    # CSSで縦並び・余白調整・日付を大きく
-    css_style = """
+# --- CSS ---
+st.markdown(
+    """
     <style>
     .input-block {
         display: flex;
         flex-direction: column;
-        margin-bottom: 6px;   /* 各項目間の余白を小さく */
+        margin-bottom: 6px;
         font-family: Arial, Helvetica, sans-serif;
     }
     .input-block label {
@@ -50,17 +46,19 @@ with st.form("input_form"):
     }
     .date-block input {
         width: 240px;
-        font-size: 26px;   /* 日付だけ大きめ */
+        font-size: 26px;   /* 日付だけ大きく */
         font-weight: bold;
         padding: 6px;
         border-radius: 6px;
         border: 1px solid #333;
     }
     </style>
-    """
-    st.markdown(css_style, unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True,
+)
 
-    # --- 入力欄（縦並び） ---
+# --- 入力フォーム (HTMLだけ配置) ---
+with st.form("input_form"):
     today_str = datetime.date.today().strftime("%Y-%m-%d")
 
     st.markdown(
@@ -69,62 +67,26 @@ with st.form("input_form"):
             <label>日付</label>
             <input type="date" id="date" value="{today_str}">
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        """
         <div class="input-block">
             <label>収縮期血圧 (mmHg)</label>
             <input type="number" inputmode="numeric" id="systolic">
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        """
         <div class="input-block">
             <label>拡張期血圧 (mmHg)</label>
             <input type="number" inputmode="numeric" id="diastolic">
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        """
         <div class="input-block">
             <label>脈拍 (bpm)</label>
             <input type="number" inputmode="numeric" id="pulse">
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        """
         <div class="input-block">
             <label>体重 (kg)</label>
             <input type="number" inputmode="numeric" id="weight">
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        """
         <div class="input-block">
             <label>体脂肪率 (%)</label>
             <input type="number" inputmode="numeric" id="fat">
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        """
         <div class="input-block">
             <label>血糖値 (mg/dL)</label>
             <input type="number" inputmode="numeric" id="glucose">
@@ -133,43 +95,43 @@ with st.form("input_form"):
         unsafe_allow_html=True,
     )
 
-    # --- JSから値を取得 ---
-    date_val   = streamlit_js_eval("document.getElementById('date')?.value", key="date")
-    systolic   = streamlit_js_eval("document.getElementById('systolic')?.value", key="systolic")
-    diastolic  = streamlit_js_eval("document.getElementById('diastolic')?.value", key="diastolic")
-    pulse      = streamlit_js_eval("document.getElementById('pulse')?.value", key="pulse")
-    weight     = streamlit_js_eval("document.getElementById('weight')?.value", key="weight")
-    fat        = streamlit_js_eval("document.getElementById('fat')?.value", key="fat")
-    glucose    = streamlit_js_eval("document.getElementById('glucose')?.value", key="glucose")
-
-    # --- 保存ボタン ---
     submitted = st.form_submit_button("保存")
 
-    if submitted:
-        if not df.empty and str(date_val) in df["date"].astype(str).values:
-            st.error("⚠️ この日付のデータは既に存在します。")
-        else:
-            def to_number(x, cast_func):
-                try:
-                    return cast_func(x)
-                except:
-                    return None
+# --- フォーム外で値を拾う ---
+date_val   = streamlit_js_eval("document.getElementById('date')?.value", key="date")
+systolic   = streamlit_js_eval("document.getElementById('systolic')?.value", key="systolic")
+diastolic  = streamlit_js_eval("document.getElementById('diastolic')?.value", key="diastolic")
+pulse      = streamlit_js_eval("document.getElementById('pulse')?.value", key="pulse")
+weight     = streamlit_js_eval("document.getElementById('weight')?.value", key="weight")
+fat        = streamlit_js_eval("document.getElementById('fat')?.value", key="fat")
+glucose    = streamlit_js_eval("document.getElementById('glucose')?.value", key="glucose")
 
-            row = [
-                str(date_val),
-                to_number(systolic, int),
-                to_number(diastolic, int),
-                to_number(pulse, int),
-                to_number(weight, float),
-                to_number(fat, float),
-                to_number(glucose, int)
-            ]
-            sheet.append_row(row)
-            st.success("✅ Googleスプレッドシートに保存しました！")
+# --- 保存処理 ---
+if submitted:
+    if not df.empty and str(date_val) in df["date"].astype(str).values:
+        st.error("⚠️ この日付のデータは既に存在します。")
+    else:
+        def to_number(x, cast_func):
+            try:
+                return cast_func(x)
+            except:
+                return None
 
-            # 保存後に再読み込み
-            records = sheet.get_all_records()
-            df = pd.DataFrame(records)
+        row = [
+            str(date_val),
+            to_number(systolic, int),
+            to_number(diastolic, int),
+            to_number(pulse, int),
+            to_number(weight, float),
+            to_number(fat, float),
+            to_number(glucose, int),
+        ]
+        sheet.append_row(row)
+        st.success("✅ Googleスプレッドシートに保存しました！")
+
+        # 保存後に再読み込み
+        records = sheet.get_all_records()
+        df = pd.DataFrame(records)
 
 # --- 直近データ表示 ---
 st.subheader("📅 直近の記録（最新5件）")
