@@ -29,41 +29,54 @@ st.subheader("新しいデータを追加")
 with st.form("input_form"):
     date = st.date_input("日付", value=datetime.date.today())
 
-    # --- CSSで入力欄を大きく & ゴシック体 ---
+    # CSS調整（余白を詰める・入力欄デザイン）
     css_style = """
     <style>
+    .stDateInput {
+        margin-bottom: 5px !important;   /* 日付と次の欄の間隔を小さく */
+    }
     input[type=number] {
         font-family: Arial, Helvetica, sans-serif;
-        width: 250px;     /* 広めに */
-        font-size: 22px;  /* 大きめ文字 */
+        width: 250px;
+        font-size: 22px;
         padding: 10px;
-        margin-bottom: 12px;
+        margin: 6px 0;  /* 縦の余白を統一してスッキリ */
         border-radius: 6px;
         border: 1px solid #ccc;
     }
     label {
         font-family: Arial, Helvetica, sans-serif;
-        font-size: 16px;
+        font-size: 15px;
     }
     </style>
     """
     st.markdown(css_style, unsafe_allow_html=True)
 
-    # --- HTML input をJSで拾ってセッションに送る ---
-    systolic = streamlit_js_eval(js_expressions="document.getElementById('systolic')?.value", key="systolic")
-    diastolic = streamlit_js_eval(js_expressions="document.getElementById('diastolic')?.value", key="diastolic")
-    pulse = streamlit_js_eval(js_expressions="document.getElementById('pulse')?.value", key="pulse")
-    weight = streamlit_js_eval(js_expressions="document.getElementById('weight')?.value", key="weight")
-    fat = streamlit_js_eval(js_expressions="document.getElementById('fat')?.value", key="fat")
-    glucose = streamlit_js_eval(js_expressions="document.getElementById('glucose')?.value", key="glucose")
+    # --- HTML入力欄 ---
+    def number_input_html(label, name):
+        return st.markdown(
+            f"""
+            <label>{label}</label><br>
+            <input type="number" inputmode="numeric" id="{name}" name="{name}"><br>
+            """,
+            unsafe_allow_html=True
+        )
 
-    # 実際の入力欄
-    st.markdown('<input type="number" inputmode="numeric" id="systolic" placeholder="収縮期血圧 (mmHg)">', unsafe_allow_html=True)
-    st.markdown('<input type="number" inputmode="numeric" id="diastolic" placeholder="拡張期血圧 (mmHg)">', unsafe_allow_html=True)
-    st.markdown('<input type="number" inputmode="numeric" id="pulse" placeholder="脈拍 (bpm)">', unsafe_allow_html=True)
-    st.markdown('<input type="number" inputmode="numeric" id="weight" placeholder="体重 (kg)">', unsafe_allow_html=True)
-    st.markdown('<input type="number" inputmode="numeric" id="fat" placeholder="体脂肪率 (%)">', unsafe_allow_html=True)
-    st.markdown('<input type="number" inputmode="numeric" id="glucose" placeholder="血糖値 (mg/dL)">', unsafe_allow_html=True)
+    # iPhone電卓キーボード対応
+    systolic   = streamlit_js_eval(js_expressions="document.getElementById('systolic')?.value", key="systolic")
+    diastolic  = streamlit_js_eval(js_expressions="document.getElementById('diastolic')?.value", key="diastolic")
+    pulse      = streamlit_js_eval(js_expressions="document.getElementById('pulse')?.value", key="pulse")
+    weight     = streamlit_js_eval(js_expressions="document.getElementById('weight')?.value", key="weight")
+    fat        = streamlit_js_eval(js_expressions="document.getElementById('fat')?.value", key="fat")
+    glucose    = streamlit_js_eval(js_expressions="document.getElementById('glucose')?.value", key="glucose")
+
+    # 入力欄表示
+    number_input_html("収縮期血圧 (mmHg)", "systolic")
+    number_input_html("拡張期血圧 (mmHg)", "diastolic")
+    number_input_html("脈拍 (bpm)", "pulse")
+    number_input_html("体重 (kg)", "weight")
+    number_input_html("体脂肪率 (%)", "fat")
+    number_input_html("血糖値 (mg/dL)", "glucose")
 
     submitted = st.form_submit_button("保存")
 
