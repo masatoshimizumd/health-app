@@ -62,6 +62,11 @@ st.markdown(
         margin-bottom: 0px !important;
         padding-top: 0px !important;
         padding-bottom: 0px !important;
+        line-height: 1 !important;
+    }
+    /* 保存ボタンの下余白を削除 */
+    div.stButton > button {
+        margin-bottom: 0px !important;
     }
     </style>
     """,
@@ -143,9 +148,13 @@ if submitted:
         records = sheet.get_all_records()
         df = pd.DataFrame(records)
 
-# --- 直近データ表示（保存ボタンとの間を詰める） ---
+# --- 直近データ表示（新しい順で上に / 余白なし） ---
 st.markdown("<h3 class='no-space'>📅 直近の記録（最新5件）</h3>", unsafe_allow_html=True)
 if not df.empty:
-    st.dataframe(df.tail(5))
+    try:
+        df_sorted = df.sort_values("date", ascending=False)
+    except Exception:
+        df_sorted = df.iloc[::-1]  # 万一 date が文字列なら単純逆順
+    st.dataframe(df_sorted.head(5))
 else:
     st.info("まだ記録がありません。")
