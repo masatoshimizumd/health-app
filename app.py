@@ -52,7 +52,7 @@ with st.form("input_form"):
     }
     .date-block input {
         width: 200px;
-        font-size: 22px;  /* 日付の文字をさらに大きく */
+        font-size: 28px;  /* 日付の文字をさらに大きく */
         padding: 8px;
         border-radius: 6px;
         border: 1px solid #333;
@@ -162,3 +162,4 @@ if not df.empty:
     st.dataframe(df.tail(5))
 else:
     st.info("まだ記録がありません。")
+
