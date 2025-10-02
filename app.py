@@ -27,57 +27,35 @@ df = pd.DataFrame(records)
 st.subheader("新しいデータを追加")
 
 with st.form("input_form"):
-    date = st.date_input("日付", value=datetime.date.today())
-
-    # CSS調整（余白を詰める・入力欄デザイン）
-    css_style = """
-    <style>
-    .stDateInput {
-        margin-bottom: 5px !important;   /* 日付と次の欄の間隔を小さく */
-    }
-    input[type=number] {
-        font-family: Arial, Helvetica, sans-serif;
-        width: 250px;
-        font-size: 22px;
-        padding: 10px;
-        margin: 6px 0;  /* 縦の余白を統一してスッキリ */
-        border-radius: 6px;
-        border: 1px solid #ccc;
-    }
-    label {
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 15px;
-    }
-    </style>
-    """
-    st.markdown(css_style, unsafe_allow_html=True)
-
-    # --- HTML入力欄 ---
-    def number_input_html(label, name):
-        return st.markdown(
-            f"""
-            <label>{label}</label><br>
-            <input type="number" inputmode="numeric" id="{name}" name="{name}"><br>
-            """,
+    # 🔹 日付と収縮期血圧を横並びにして余白を消す
+    col1, col2 = st.columns([1,1.5])
+    with col1:
+        date = st.date_input("日付", value=datetime.date.today())
+    with col2:
+        st.markdown(
+            '<label>収縮期血圧 (mmHg)</label><br>'
+            '<input type="number" inputmode="numeric" id="systolic" style="width:200px;font-size:20px;padding:8px;">',
             unsafe_allow_html=True
         )
+        systolic = streamlit_js_eval(js_expressions="document.getElementById('systolic')?.value", key="systolic")
 
-    # iPhone電卓キーボード対応
-    systolic   = streamlit_js_eval(js_expressions="document.getElementById('systolic')?.value", key="systolic")
-    diastolic  = streamlit_js_eval(js_expressions="document.getElementById('diastolic')?.value", key="diastolic")
-    pulse      = streamlit_js_eval(js_expressions="document.getElementById('pulse')?.value", key="pulse")
-    weight     = streamlit_js_eval(js_expressions="document.getElementById('weight')?.value", key="weight")
-    fat        = streamlit_js_eval(js_expressions="document.getElementById('fat')?.value", key="fat")
-    glucose    = streamlit_js_eval(js_expressions="document.getElementById('glucose')?.value", key="glucose")
+    # 🔹 以下は縦に並べる
+    st.markdown('<label>拡張期血圧 (mmHg)</label><br><input type="number" inputmode="numeric" id="diastolic" style="width:200px;font-size:20px;padding:8px;">', unsafe_allow_html=True)
+    diastolic = streamlit_js_eval(js_expressions="document.getElementById('diastolic')?.value", key="diastolic")
 
-    # 入力欄表示
-    number_input_html("収縮期血圧 (mmHg)", "systolic")
-    number_input_html("拡張期血圧 (mmHg)", "diastolic")
-    number_input_html("脈拍 (bpm)", "pulse")
-    number_input_html("体重 (kg)", "weight")
-    number_input_html("体脂肪率 (%)", "fat")
-    number_input_html("血糖値 (mg/dL)", "glucose")
+    st.markdown('<label>脈拍 (bpm)</label><br><input type="number" inputmode="numeric" id="pulse" style="width:200px;font-size:20px;padding:8px;">', unsafe_allow_html=True)
+    pulse = streamlit_js_eval(js_expressions="document.getElementById('pulse')?.value", key="pulse")
 
+    st.markdown('<label>体重 (kg)</label><br><input type="number" inputmode="numeric" id="weight" style="width:200px;font-size:20px;padding:8px;">', unsafe_allow_html=True)
+    weight = streamlit_js_eval(js_expressions="document.getElementById('weight')?.value", key="weight")
+
+    st.markdown('<label>体脂肪率 (%)</label><br><input type="number" inputmode="numeric" id="fat" style="width:200px;font-size:20px;padding:8px;">', unsafe_allow_html=True)
+    fat = streamlit_js_eval(js_expressions="document.getElementById('fat')?.value", key="fat")
+
+    st.markdown('<label>血糖値 (mg/dL)</label><br><input type="number" inputmode="numeric" id="glucose" style="width:200px;font-size:20px;padding:8px;">', unsafe_allow_html=True)
+    glucose = streamlit_js_eval(js_expressions="document.getElementById('glucose')?.value", key="glucose")
+
+    # 保存ボタン
     submitted = st.form_submit_button("保存")
 
     if submitted:
@@ -102,7 +80,7 @@ with st.form("input_form"):
             sheet.append_row(row)
             st.success("✅ Googleスプレッドシートに保存しました！")
 
-            # 保存後に再読み込み
+            # 再読み込み
             records = sheet.get_all_records()
             df = pd.DataFrame(records)
 
