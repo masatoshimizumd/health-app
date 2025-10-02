@@ -58,9 +58,8 @@ st.markdown(
 )
 
 # --- 入力フォーム (HTMLだけ配置) ---
+today_str = datetime.date.today().strftime("%Y-%m-%d")
 with st.form("input_form"):
-    today_str = datetime.date.today().strftime("%Y-%m-%d")
-
     st.markdown(
         f"""
         <div class="input-block date-block">
@@ -97,7 +96,7 @@ with st.form("input_form"):
 
     submitted = st.form_submit_button("保存")
 
-# --- フォーム外で値を拾う ---
+# --- フォーム外で値を拾う（ここが重要） ---
 date_val   = streamlit_js_eval("document.getElementById('date')?.value", key="date")
 systolic   = streamlit_js_eval("document.getElementById('systolic')?.value", key="systolic")
 diastolic  = streamlit_js_eval("document.getElementById('diastolic')?.value", key="diastolic")
