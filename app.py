@@ -97,13 +97,13 @@ with st.form("input_form"):
     submitted = st.form_submit_button("保存")
 
 # --- フォーム外で値を拾う（ここが重要） ---
-date_val   = streamlit_js_eval("document.getElementById('date')?.value", key="date")
-systolic   = streamlit_js_eval("document.getElementById('systolic')?.value", key="systolic")
-diastolic  = streamlit_js_eval("document.getElementById('diastolic')?.value", key="diastolic")
-pulse      = streamlit_js_eval("document.getElementById('pulse')?.value", key="pulse")
-weight     = streamlit_js_eval("document.getElementById('weight')?.value", key="weight")
-fat        = streamlit_js_eval("document.getElementById('fat')?.value", key="fat")
-glucose    = streamlit_js_eval("document.getElementById('glucose')?.value", key="glucose")
+date_val   = streamlit_js_eval(js_expressions="document.getElementById('date')?.value", key="date")
+systolic   = streamlit_js_eval(js_expressions="document.getElementById('systolic')?.value", key="systolic")
+diastolic  = streamlit_js_eval(js_expressions="document.getElementById('diastolic')?.value", key="diastolic")
+pulse      = streamlit_js_eval(js_expressions="document.getElementById('pulse')?.value", key="pulse")
+weight     = streamlit_js_eval(js_expressions="document.getElementById('weight')?.value", key="weight")
+fat        = streamlit_js_eval(js_expressions="document.getElementById('fat')?.value", key="fat")
+glucose    = streamlit_js_eval(js_expressions="document.getElementById('glucose')?.value", key="glucose")
 
 # --- 保存処理 ---
 if submitted:
@@ -138,3 +138,4 @@ if not df.empty:
     st.dataframe(df.tail(5))
 else:
     st.info("まだ記録がありません。")
+
