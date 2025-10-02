@@ -17,7 +17,12 @@ client = gspread.authorize(creds)
 sheet = client.open("health_data").sheet1
 
 # --- タイトル ---
-st.markdown("<h1 style='font-family:Arial,Helvetica,sans-serif;'>smt-health_data</h1>", unsafe_allow_html=True)
+st.markdown(
+    """
+    <h1 style='font-family:Arial,Helvetica,sans-serif; margin-bottom:0px;'>Health_Data</h1>
+    """,
+    unsafe_allow_html=True
+)
 
 # --- データ読み込み ---
 records = sheet.get_all_records()
@@ -46,11 +51,17 @@ st.markdown(
     }
     .date-block input {
         width: 240px;
-        font-size: 26px;   /* 日付だけ大きく */
+        font-size: 26px;   /* 日付だけ大きめ */
         font-weight: bold;
         padding: 6px;
         border-radius: 6px;
         border: 1px solid #333;
+    }
+    .no-space {
+        margin-top: 0px !important;
+        margin-bottom: 0px !important;
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
     }
     </style>
     """,
@@ -62,7 +73,7 @@ today_str = datetime.date.today().strftime("%Y-%m-%d")
 with st.form("input_form"):
     st.markdown(
         f"""
-        <div class="input-block date-block">
+        <div class="input-block date-block no-space">
             <label>日付</label>
             <input type="date" id="date" value="{today_str}">
         </div>
@@ -96,7 +107,7 @@ with st.form("input_form"):
 
     submitted = st.form_submit_button("保存")
 
-# --- フォーム外で値を拾う（ここが重要） ---
+# --- フォーム外で値を拾う ---
 date_val   = streamlit_js_eval(js_expressions="document.getElementById('date')?.value", key="date")
 systolic   = streamlit_js_eval(js_expressions="document.getElementById('systolic')?.value", key="systolic")
 diastolic  = streamlit_js_eval(js_expressions="document.getElementById('diastolic')?.value", key="diastolic")
@@ -132,10 +143,9 @@ if submitted:
         records = sheet.get_all_records()
         df = pd.DataFrame(records)
 
-# --- 直近データ表示 ---
-st.subheader("📅 直近の記録（最新5件）")
+# --- 直近データ表示（保存ボタンとの間を詰める） ---
+st.markdown("<h3 class='no-space'>📅 直近の記録（最新5件）</h3>", unsafe_allow_html=True)
 if not df.empty:
     st.dataframe(df.tail(5))
 else:
     st.info("まだ記録がありません。")
-
