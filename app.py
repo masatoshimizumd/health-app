@@ -28,100 +28,101 @@ st.subheader("新しいデータを追加")
 
 with st.form("input_form"):
 
-    # 🔹 日付 + 血圧2項目を横並びに
-    col1, col2, col3 = st.columns([1,1,1])
-
-    with col1:
-        date = st.date_input("日付", value=datetime.date.today())
-
-    with col2:
-        st.markdown(
-            """
-            <div class="input-block">
-              <label>収縮期血圧 (mmHg)</label><br>
-              <input type="number" inputmode="numeric" id="systolic">
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        systolic = streamlit_js_eval(
-            js_expressions="document.getElementById('systolic')?.value", key="systolic"
-        )
-
-    with col3:
-        st.markdown(
-            """
-            <div class="input-block">
-              <label>拡張期血圧 (mmHg)</label><br>
-              <input type="number" inputmode="numeric" id="diastolic">
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        diastolic = streamlit_js_eval(
-            js_expressions="document.getElementById('diastolic')?.value", key="diastolic"
-        )
-
-    # CSS で入力欄デザインを調整
+    # CSS（余白を詰める・入力欄統一デザイン）
     css_style = """
     <style>
-    .input-block {
-        margin-bottom: 6px;
+    .input-row {
+        display: flex;
+        gap: 12px;          /* 横並びの間隔 */
+        margin-bottom: 6px; /* 縦の余白（小さめ） */
+        align-items: center;
     }
-    input[type=number] {
+    .input-block {
+        display: flex;
+        flex-direction: column;
         font-family: Arial, Helvetica, sans-serif;
-        width: 200px;
+        font-size: 14px;
+    }
+    .input-block input {
+        width: 160px;
         font-size: 18px;
         padding: 6px;
         border-radius: 6px;
         border: 1px solid #ccc;
     }
-    label {
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 14px;
-    }
     </style>
     """
     st.markdown(css_style, unsafe_allow_html=True)
 
-    # 🔹 その他の入力欄（縦並び）
+    # --- 日付 + 血圧2項目を1行に ---
     st.markdown(
-        '<label>脈拍 (bpm)</label><br><input type="number" inputmode="numeric" id="pulse">',
-        unsafe_allow_html=True
-    )
-    pulse = streamlit_js_eval(
-        js_expressions="document.getElementById('pulse')?.value", key="pulse"
+        f"""
+        <div class="input-row">
+            <div class="input-block">
+                <label>日付</label>
+                <input type="date" id="date" value="{datetime.date.today()}">
+            </div>
+            <div class="input-block">
+                <label>収縮期血圧 (mmHg)</label>
+                <input type="number" inputmode="numeric" id="systolic">
+            </div>
+            <div class="input-block">
+                <label>拡張期血圧 (mmHg)</label>
+                <input type="number" inputmode="numeric" id="diastolic">
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
+    # --- 脈拍・体重 ---
     st.markdown(
-        '<label>体重 (kg)</label><br><input type="number" inputmode="numeric" id="weight">',
-        unsafe_allow_html=True
-    )
-    weight = streamlit_js_eval(
-        js_expressions="document.getElementById('weight')?.value", key="weight"
+        """
+        <div class="input-row">
+            <div class="input-block">
+                <label>脈拍 (bpm)</label>
+                <input type="number" inputmode="numeric" id="pulse">
+            </div>
+            <div class="input-block">
+                <label>体重 (kg)</label>
+                <input type="number" inputmode="numeric" id="weight">
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
+    # --- 体脂肪率・血糖値 ---
     st.markdown(
-        '<label>体脂肪率 (%)</label><br><input type="number" inputmode="numeric" id="fat">',
-        unsafe_allow_html=True
-    )
-    fat = streamlit_js_eval(
-        js_expressions="document.getElementById('fat')?.value", key="fat"
+        """
+        <div class="input-row">
+            <div class="input-block">
+                <label>体脂肪率 (%)</label>
+                <input type="number" inputmode="numeric" id="fat">
+            </div>
+            <div class="input-block">
+                <label>血糖値 (mg/dL)</label>
+                <input type="number" inputmode="numeric" id="glucose">
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    st.markdown(
-        '<label>血糖値 (mg/dL)</label><br><input type="number" inputmode="numeric" id="glucose">',
-        unsafe_allow_html=True
-    )
-    glucose = streamlit_js_eval(
-        js_expressions="document.getElementById('glucose')?.value", key="glucose"
-    )
+    # --- 値取得（JS→Streamlit） ---
+    date_val = streamlit_js_eval(js_expressions="document.getElementById('date')?.value", key="date")
+    systolic = streamlit_js_eval(js_expressions="document.getElementById('systolic')?.value", key="systolic")
+    diastolic = streamlit_js_eval(js_expressions="document.getElementById('diastolic')?.value", key="diastolic")
+    pulse = streamlit_js_eval(js_expressions="document.getElementById('pulse')?.value", key="pulse")
+    weight = streamlit_js_eval(js_expressions="document.getElementById('weight')?.value", key="weight")
+    fat = streamlit_js_eval(js_expressions="document.getElementById('fat')?.value", key="fat")
+    glucose = streamlit_js_eval(js_expressions="document.getElementById('glucose')?.value", key="glucose")
 
-    # 保存ボタン
+    # --- 保存ボタン ---
     submitted = st.form_submit_button("保存")
 
     if submitted:
-        if not df.empty and str(date) in df["date"].astype(str).values:
+        if not df.empty and str(date_val) in df["date"].astype(str).values:
             st.error("⚠️ この日付のデータは既に存在します。")
         else:
             def to_number(x, cast_func):
@@ -131,7 +132,7 @@ with st.form("input_form"):
                     return None
 
             row = [
-                str(date),
+                str(date_val),
                 to_number(systolic, int),
                 to_number(diastolic, int),
                 to_number(pulse, int),
@@ -142,7 +143,7 @@ with st.form("input_form"):
             sheet.append_row(row)
             st.success("✅ Googleスプレッドシートに保存しました！")
 
-            # 保存後に再読み込み
+            # 再読み込み
             records = sheet.get_all_records()
             df = pd.DataFrame(records)
 
