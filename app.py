@@ -3,13 +3,19 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import datetime
+import json
 
 # --- Google Sheets 認証 ---
 scope = ["https://spreadsheets.google.com/feeds",
          "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+
+# Secrets から認証を読み込み
+creds_dict = st.secrets["gcp_service_account"]
+creds = ServiceAccountCredentials.from_json_keyfile_dict(dict(creds_dict), scope)
 client = gspread.authorize(creds)
-sheet = client.open("health_data").sheet1  # シート名が "health_data" であること
+
+# スプレッドシートを開く
+sheet = client.open("health_data").sheet1
 
 st.title("📊 健康データ記録アプリ（Google Sheets版）")
 
@@ -25,7 +31,7 @@ with st.form("input_form"):
     submitted = st.form_submit_button("保存")
 
     if submitted:
-        # 空文字を None に変換
+        # 空欄は None に変換
         row = [
             str(date),
             int(systolic) if systolic else None,
@@ -44,7 +50,3 @@ df = pd.DataFrame(records)
 
 st.subheader("データ一覧")
 st.dataframe(df)
-
-# --- グラフ表示（おまけ） ---
-if not df.empty:
-    st.line_chart(df.set_index("date")[["systolic","diastolic","pulse","weight","fat","glucose"]])
