@@ -161,4 +161,19 @@ with st.form("input_form"):
                 to_number(diastolic, int),
                 to_number(pulse, int),
                 to_number(weight, float),
-                to_number(fat, floa_
+                to_number(fat, float),
+                to_number(glucose, int)
+            ]
+            sheet.append_row(row)
+            st.success("✅ Googleスプレッドシートに保存しました！")
+
+            # 保存後に再読み込み
+            records = sheet.get_all_records()
+            df = pd.DataFrame(records)
+
+# --- 直近データ表示 ---
+st.subheader("📅 直近の記録（最新5件）")
+if not df.empty:
+    st.dataframe(df.tail(5))
+else:
+    st.info("まだ記録がありません。")
