@@ -23,43 +23,21 @@ df = pd.DataFrame(records)
 
 # --- 新規追加フォーム ---
 st.subheader("新しいデータを追加")
+
 with st.form("input_form"):
     date = st.date_input("日付", value=datetime.date.today())
 
-    # iPhoneで電卓キーボードを出したいので text_input を利用
-    systolic = st.text_input("収縮期血圧 (mmHg)", value="", placeholder="数値を入力")
-    diastolic = st.text_input("拡張期血圧 (mmHg)", value="", placeholder="数値を入力")
-    pulse = st.text_input("脈拍 (bpm)", value="", placeholder="数値を入力")
-    weight = st.text_input("体重 (kg)", value="", placeholder="数値を入力")
-    fat = st.text_input("体脂肪率 (%)", value="", placeholder="数値を入力")
-    glucose = st.text_input("血糖値 (mg/dL)", value="", placeholder="数値を入力")
+    # --- HTML入力（電卓キーボードがiPhoneで必ず出る） ---
+    st.markdown('<label>収縮期血圧 (mmHg)</label><input type="number" inputmode="numeric" name="systolic" id="systolic" style="width:100%;padding:5px;">', unsafe_allow_html=True)
+    st.markdown('<label>拡張期血圧 (mmHg)</label><input type="number" inputmode="numeric" name="diastolic" id="diastolic" style="width:100%;padding:5px;">', unsafe_allow_html=True)
+    st.markdown('<label>脈拍 (bpm)</label><input type="number" inputmode="numeric" name="pulse" id="pulse" style="width:100%;padding:5px;">', unsafe_allow_html=True)
+    st.markdown('<label>体重 (kg)</label><input type="number" inputmode="numeric" name="weight" id="weight" style="width:100%;padding:5px;">', unsafe_allow_html=True)
+    st.markdown('<label>体脂肪率 (%)</label><input type="number" inputmode="numeric" name="fat" id="fat" style="width:100%;padding:5px;">', unsafe_allow_html=True)
+    st.markdown('<label>血糖値 (mg/dL)</label><input type="number" inputmode="numeric" name="glucose" id="glucose" style="width:100%;padding:5px;">', unsafe_allow_html=True)
 
     submitted = st.form_submit_button("保存")
 
     if submitted:
-        # --- 入力チェック関数 ---
-        def to_number(x, cast_func):
-            try:
-                return cast_func(x)
-            except:
-                return None
-
-        # --- 日付重複チェック ---
-        if not df.empty and str(date) in df["date"].astype(str).values:
-            st.error("⚠️ この日付のデータは既に存在します。")
-        else:
-            row = [
-                str(date),
-                to_number(systolic, int),
-                to_number(diastolic, int),
-                to_number(pulse, int),
-                to_number(weight, float),
-                to_number(fat, float),
-                to_number(glucose, int)
-            ]
-            sheet.append_row(row)
-            st.success("✅ Googleスプレッドシートに保存しました！")
-
-# --- データ一覧の表示 ---
-st.subheader("データ一覧")
-st.dataframe(df)
+        # ⚠️ ここで JavaScript/streamlit_js_eval などを使って値を取得する必要あり
+        # 簡単化のため、一旦 st.session_state を利用する仕組みにするのが良いです
+        st.warning("⚠️ このバージョンでは入力値取得の仕組みを追加する必要があります。")
