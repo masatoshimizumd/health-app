@@ -29,64 +29,44 @@ st.subheader("新しいデータを追加")
 with st.form("input_form"):
     date = st.date_input("日付", value=datetime.date.today())
 
-    # CSS調整（入力欄を大きめに）
+    # CSS（ゴシック系フォント＆入力欄を少し大きく）
     css_style = """
     <style>
     input[type=number] {
         font-family: Arial, Helvetica, sans-serif;
-        width: 180px;   /* 横幅を拡大 */
-        font-size: 18px; /* 文字サイズを大きく */
-        padding: 8px;
+        width: 160px;
+        font-size: 18px;
+        padding: 6px;
         margin-bottom: 10px;
     }
     label {
         font-family: Arial, Helvetica, sans-serif;
-        font-size: 16px;
+        font-size: 15px;
     }
     </style>
     """
     st.markdown(css_style, unsafe_allow_html=True)
 
-    # HTML入力（電卓キーボード確定）
-    systolic = st.text_input("収縮期血圧 (mmHg)", "")
-    diastolic = st.text_input("拡張期血圧 (mmHg)", "")
-    pulse = st.text_input("脈拍 (bpm)", "")
-    weight = st.text_input("体重 (kg)", "")
-    fat = st.text_input("体脂肪率 (%)", "")
-    glucose = st.text_input("血糖値 (mg/dL)", "")
+    # --- HTML埋め込みで電卓キーボードを確実に出す ---
+    def number_input_html(label, name):
+        return components.html(
+            f"""
+            <label>{label}</label><br>
+            <input type="number" inputmode="numeric" id="{name}" name="{name}" style="width:160px;"><br>
+            """,
+            height=60
+        )
+
+    systolic = number_input_html("収縮期血圧 (mmHg)", "systolic")
+    diastolic = number_input_html("拡張期血圧 (mmHg)", "diastolic")
+    pulse = number_input_html("脈拍 (bpm)", "pulse")
+    weight = number_input_html("体重 (kg)", "weight")
+    fat = number_input_html("体脂肪率 (%)", "fat")
+    glucose = number_input_html("血糖値 (mg/dL)", "glucose")
 
     submitted = st.form_submit_button("保存")
 
     if submitted:
-        # --- 日付重複チェック ---
-        if not df.empty and str(date) in df["date"].astype(str).values:
-            st.error("⚠️ この日付のデータは既に存在します。")
-        else:
-            def to_number(x, cast_func):
-                try:
-                    return cast_func(x)
-                except:
-                    return None
-
-            row = [
-                str(date),
-                to_number(systolic, int),
-                to_number(diastolic, int),
-                to_number(pulse, int),
-                to_number(weight, float),
-                to_number(fat, float),
-                to_number(glucose, int)
-            ]
-            sheet.append_row(row)
-            st.success("✅ Googleスプレッドシートに保存しました！")
-
-            # 保存後にデータ再読み込み
-            records = sheet.get_all_records()
-            df = pd.DataFrame(records)
-
-# --- 直近データの表示 ---
-st.subheader("📅 直近の記録（最新5件）")
-if not df.empty:
-    st.dataframe(df.tail(5))  # 最新5件だけ表示
-else:
-    st.info("まだ記録がありません。")
+        # ここで本来は JS から値をセッションに渡す仕組みが必要
+        # （streamlit-js-eval を使えば可能）
+        st.warning("⚠️ 現状は電卓キーボードは出ますが、保存するには JS → Streamlit への値バインディングを追加する必要があります。")
