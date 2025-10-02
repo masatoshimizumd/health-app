@@ -25,12 +25,12 @@ df = pd.DataFrame(records)
 st.subheader("新しいデータを追加")
 with st.form("input_form"):
     date = st.date_input("日付", value=datetime.date.today())
-    systolic = st.number_input("収縮期血圧 (mmHg)", min_value=0, max_value=300, step=1)
-    diastolic = st.number_input("拡張期血圧 (mmHg)", min_value=0, max_value=200, step=1)
-    pulse = st.number_input("脈拍 (bpm)", min_value=0, max_value=250, step=1)
-    weight = st.number_input("体重 (kg)", min_value=0.0, max_value=200.0, step=0.1)
-    fat = st.number_input("体脂肪率 (%)", min_value=0.0, max_value=100.0, step=0.1)
-    glucose = st.number_input("血糖値 (mg/dL)", min_value=0, max_value=1000, step=1)
+    systolic = st.text_input("収縮期血圧 (mmHg)", value="", type="number")
+    diastolic = st.text_input("拡張期血圧 (mmHg)", value="", type="number")
+    pulse = st.text_input("脈拍 (bpm)", value="", type="number")
+    weight = st.text_input("体重 (kg)", value="", type="number")
+    fat = st.text_input("体脂肪率 (%)", value="", type="number")
+    glucose = st.text_input("血糖値 (mg/dL)", value="", type="number")
     submitted = st.form_submit_button("保存")
 
     if submitted:
@@ -49,6 +49,7 @@ with st.form("input_form"):
             ]
             sheet.append_row(row)
             st.success("✅ Googleスプレッドシートに保存しました！")
+
 
 # --- データ修正フォーム ---
 st.subheader("既存データを修正")
@@ -77,3 +78,4 @@ if not df.empty:
 # --- データ一覧の表示 ---
 st.subheader("データ一覧")
 st.dataframe(df)
+
