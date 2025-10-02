@@ -27,10 +27,13 @@ df = pd.DataFrame(records)
 st.subheader("新しいデータを追加")
 
 with st.form("input_form"):
-    # 🔹 日付と収縮期血圧を横並び
-    col1, col2 = st.columns([1,1.5])
+
+    # 🔹 日付 + 血圧2項目を横並びに
+    col1, col2, col3 = st.columns([1,1,1])
+
     with col1:
         date = st.date_input("日付", value=datetime.date.today())
+
     with col2:
         st.markdown(
             """
@@ -41,13 +44,29 @@ with st.form("input_form"):
             """,
             unsafe_allow_html=True
         )
-        systolic = streamlit_js_eval(js_expressions="document.getElementById('systolic')?.value", key="systolic")
+        systolic = streamlit_js_eval(
+            js_expressions="document.getElementById('systolic')?.value", key="systolic"
+        )
 
-    # CSS で間隔を統一・詰める
+    with col3:
+        st.markdown(
+            """
+            <div class="input-block">
+              <label>拡張期血圧 (mmHg)</label><br>
+              <input type="number" inputmode="numeric" id="diastolic">
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        diastolic = streamlit_js_eval(
+            js_expressions="document.getElementById('diastolic')?.value", key="diastolic"
+        )
+
+    # CSS で入力欄デザインを調整
     css_style = """
     <style>
     .input-block {
-        margin-bottom: 4px;   /* 各項目の下余白を小さく */
+        margin-bottom: 6px;
     }
     input[type=number] {
         font-family: Arial, Helvetica, sans-serif;
@@ -65,30 +84,40 @@ with st.form("input_form"):
     """
     st.markdown(css_style, unsafe_allow_html=True)
 
-    # 🔹 以下の入力欄（縦に並ぶが余白は詰める）
-    def number_input_html(label, name):
-        return st.markdown(
-            f"""
-            <div class="input-block">
-              <label>{label}</label><br>
-              <input type="number" inputmode="numeric" id="{name}">
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    # 🔹 その他の入力欄（縦並び）
+    st.markdown(
+        '<label>脈拍 (bpm)</label><br><input type="number" inputmode="numeric" id="pulse">',
+        unsafe_allow_html=True
+    )
+    pulse = streamlit_js_eval(
+        js_expressions="document.getElementById('pulse')?.value", key="pulse"
+    )
 
-    diastolic = streamlit_js_eval(js_expressions="document.getElementById('diastolic')?.value", key="diastolic")
-    pulse = streamlit_js_eval(js_expressions="document.getElementById('pulse')?.value", key="pulse")
-    weight = streamlit_js_eval(js_expressions="document.getElementById('weight')?.value", key="weight")
-    fat = streamlit_js_eval(js_expressions="document.getElementById('fat')?.value", key="fat")
-    glucose = streamlit_js_eval(js_expressions="document.getElementById('glucose')?.value", key="glucose")
+    st.markdown(
+        '<label>体重 (kg)</label><br><input type="number" inputmode="numeric" id="weight">',
+        unsafe_allow_html=True
+    )
+    weight = streamlit_js_eval(
+        js_expressions="document.getElementById('weight')?.value", key="weight"
+    )
 
-    number_input_html("拡張期血圧 (mmHg)", "diastolic")
-    number_input_html("脈拍 (bpm)", "pulse")
-    number_input_html("体重 (kg)", "weight")
-    number_input_html("体脂肪率 (%)", "fat")
-    number_input_html("血糖値 (mg/dL)", "glucose")
+    st.markdown(
+        '<label>体脂肪率 (%)</label><br><input type="number" inputmode="numeric" id="fat">',
+        unsafe_allow_html=True
+    )
+    fat = streamlit_js_eval(
+        js_expressions="document.getElementById('fat')?.value", key="fat"
+    )
 
+    st.markdown(
+        '<label>血糖値 (mg/dL)</label><br><input type="number" inputmode="numeric" id="glucose">',
+        unsafe_allow_html=True
+    )
+    glucose = streamlit_js_eval(
+        js_expressions="document.getElementById('glucose')?.value", key="glucose"
+    )
+
+    # 保存ボタン
     submitted = st.form_submit_button("保存")
 
     if submitted:
