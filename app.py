@@ -29,33 +29,64 @@ st.subheader("新しいデータを追加")
 with st.form("input_form"):
     date = st.date_input("日付", value=datetime.date.today())
 
-    # CSS調整（フォント＝ゴシック系、幅を狭める）
+    # CSS調整（入力欄を大きめに）
     css_style = """
     <style>
     input[type=number] {
         font-family: Arial, Helvetica, sans-serif;
-        width: 120px;   /* 入力欄の幅を狭める */
-        padding: 5px;
-        margin-bottom: 8px;
+        width: 180px;   /* 横幅を拡大 */
+        font-size: 18px; /* 文字サイズを大きく */
+        padding: 8px;
+        margin-bottom: 10px;
     }
     label {
         font-family: Arial, Helvetica, sans-serif;
+        font-size: 16px;
     }
     </style>
     """
     st.markdown(css_style, unsafe_allow_html=True)
 
-    # iPhone電卓キーボード用 inputmode="numeric"
-    systolic = components.html('<input type="number" inputmode="numeric" id="systolic" placeholder="収縮期血圧">', height=40)
-    diastolic = components.html('<input type="number" inputmode="numeric" id="diastolic" placeholder="拡張期血圧">', height=40)
-    pulse = components.html('<input type="number" inputmode="numeric" id="pulse" placeholder="脈拍">', height=40)
-    weight = components.html('<input type="number" inputmode="numeric" id="weight" placeholder="体重">', height=40)
-    fat = components.html('<input type="number" inputmode="numeric" id="fat" placeholder="体脂肪率">', height=40)
-    glucose = components.html('<input type="number" inputmode="numeric" id="glucose" placeholder="血糖値">', height=40)
+    # HTML入力（電卓キーボード確定）
+    systolic = st.text_input("収縮期血圧 (mmHg)", "")
+    diastolic = st.text_input("拡張期血圧 (mmHg)", "")
+    pulse = st.text_input("脈拍 (bpm)", "")
+    weight = st.text_input("体重 (kg)", "")
+    fat = st.text_input("体脂肪率 (%)", "")
+    glucose = st.text_input("血糖値 (mg/dL)", "")
 
     submitted = st.form_submit_button("保存")
 
     if submitted:
-        # --- 入力値取得（JS経由でセッションに反映する仕組みを利用） ---
-        # 今回はシンプルに st.session_state から受け取れるよう構成するのが安全
-        st.warning("⚠️ 値のバインディング実装が必要です（送信ボタンなしで直接保存するため）。")
+        # --- 日付重複チェック ---
+        if not df.empty and str(date) in df["date"].astype(str).values:
+            st.error("⚠️ この日付のデータは既に存在します。")
+        else:
+            def to_number(x, cast_func):
+                try:
+                    return cast_func(x)
+                except:
+                    return None
+
+            row = [
+                str(date),
+                to_number(systolic, int),
+                to_number(diastolic, int),
+                to_number(pulse, int),
+                to_number(weight, float),
+                to_number(fat, float),
+                to_number(glucose, int)
+            ]
+            sheet.append_row(row)
+            st.success("✅ Googleスプレッドシートに保存しました！")
+
+            # 保存後にデータ再読み込み
+            records = sheet.get_all_records()
+            df = pd.DataFrame(records)
+
+# --- 直近データの表示 ---
+st.subheader("📅 直近の記録（最新5件）")
+if not df.empty:
+    st.dataframe(df.tail(5))  # 最新5件だけ表示
+else:
+    st.info("まだ記録がありません。")
