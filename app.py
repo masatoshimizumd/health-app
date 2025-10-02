@@ -27,35 +27,68 @@ df = pd.DataFrame(records)
 st.subheader("新しいデータを追加")
 
 with st.form("input_form"):
-    # 🔹 日付と収縮期血圧を横並びにして余白を消す
+    # 🔹 日付と収縮期血圧を横並び
     col1, col2 = st.columns([1,1.5])
     with col1:
         date = st.date_input("日付", value=datetime.date.today())
     with col2:
         st.markdown(
-            '<label>収縮期血圧 (mmHg)</label><br>'
-            '<input type="number" inputmode="numeric" id="systolic" style="width:200px;font-size:20px;padding:8px;">',
+            """
+            <div class="input-block">
+              <label>収縮期血圧 (mmHg)</label><br>
+              <input type="number" inputmode="numeric" id="systolic">
+            </div>
+            """,
             unsafe_allow_html=True
         )
         systolic = streamlit_js_eval(js_expressions="document.getElementById('systolic')?.value", key="systolic")
 
-    # 🔹 以下は縦に並べる
-    st.markdown('<label>拡張期血圧 (mmHg)</label><br><input type="number" inputmode="numeric" id="diastolic" style="width:200px;font-size:20px;padding:8px;">', unsafe_allow_html=True)
+    # CSS で間隔を統一・詰める
+    css_style = """
+    <style>
+    .input-block {
+        margin-bottom: 4px;   /* 各項目の下余白を小さく */
+    }
+    input[type=number] {
+        font-family: Arial, Helvetica, sans-serif;
+        width: 200px;
+        font-size: 18px;
+        padding: 6px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+    }
+    label {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 14px;
+    }
+    </style>
+    """
+    st.markdown(css_style, unsafe_allow_html=True)
+
+    # 🔹 以下の入力欄（縦に並ぶが余白は詰める）
+    def number_input_html(label, name):
+        return st.markdown(
+            f"""
+            <div class="input-block">
+              <label>{label}</label><br>
+              <input type="number" inputmode="numeric" id="{name}">
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
     diastolic = streamlit_js_eval(js_expressions="document.getElementById('diastolic')?.value", key="diastolic")
-
-    st.markdown('<label>脈拍 (bpm)</label><br><input type="number" inputmode="numeric" id="pulse" style="width:200px;font-size:20px;padding:8px;">', unsafe_allow_html=True)
     pulse = streamlit_js_eval(js_expressions="document.getElementById('pulse')?.value", key="pulse")
-
-    st.markdown('<label>体重 (kg)</label><br><input type="number" inputmode="numeric" id="weight" style="width:200px;font-size:20px;padding:8px;">', unsafe_allow_html=True)
     weight = streamlit_js_eval(js_expressions="document.getElementById('weight')?.value", key="weight")
-
-    st.markdown('<label>体脂肪率 (%)</label><br><input type="number" inputmode="numeric" id="fat" style="width:200px;font-size:20px;padding:8px;">', unsafe_allow_html=True)
     fat = streamlit_js_eval(js_expressions="document.getElementById('fat')?.value", key="fat")
-
-    st.markdown('<label>血糖値 (mg/dL)</label><br><input type="number" inputmode="numeric" id="glucose" style="width:200px;font-size:20px;padding:8px;">', unsafe_allow_html=True)
     glucose = streamlit_js_eval(js_expressions="document.getElementById('glucose')?.value", key="glucose")
 
-    # 保存ボタン
+    number_input_html("拡張期血圧 (mmHg)", "diastolic")
+    number_input_html("脈拍 (bpm)", "pulse")
+    number_input_html("体重 (kg)", "weight")
+    number_input_html("体脂肪率 (%)", "fat")
+    number_input_html("血糖値 (mg/dL)", "glucose")
+
     submitted = st.form_submit_button("保存")
 
     if submitted:
@@ -80,7 +113,7 @@ with st.form("input_form"):
             sheet.append_row(row)
             st.success("✅ Googleスプレッドシートに保存しました！")
 
-            # 再読み込み
+            # 保存後に再読み込み
             records = sheet.get_all_records()
             df = pd.DataFrame(records)
 
