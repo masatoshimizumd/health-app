@@ -3,7 +3,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import datetime
-import streamlit.components.v1 as components
+from streamlit_js_eval import streamlit_js_eval
 
 # --- Google Sheets 認証 ---
 scope = ["https://spreadsheets.google.com/feeds",
@@ -16,7 +16,7 @@ client = gspread.authorize(creds)
 # スプレッドシートを開く
 sheet = client.open("health_data").sheet1
 
-# --- タイトルを変更 ---
+# --- タイトル ---
 st.markdown("<h1 style='font-family:Arial,Helvetica,sans-serif;'>smt-health_data</h1>", unsafe_allow_html=True)
 
 # --- データ読み込み ---
@@ -29,44 +29,73 @@ st.subheader("新しいデータを追加")
 with st.form("input_form"):
     date = st.date_input("日付", value=datetime.date.today())
 
-    # CSS（ゴシック系フォント＆入力欄を少し大きく）
+    # --- CSSで入力欄を大きく & ゴシック体 ---
     css_style = """
     <style>
     input[type=number] {
         font-family: Arial, Helvetica, sans-serif;
-        width: 160px;
-        font-size: 18px;
-        padding: 6px;
-        margin-bottom: 10px;
+        width: 250px;     /* 広めに */
+        font-size: 22px;  /* 大きめ文字 */
+        padding: 10px;
+        margin-bottom: 12px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
     }
     label {
         font-family: Arial, Helvetica, sans-serif;
-        font-size: 15px;
+        font-size: 16px;
     }
     </style>
     """
     st.markdown(css_style, unsafe_allow_html=True)
 
-    # --- HTML埋め込みで電卓キーボードを確実に出す ---
-    def number_input_html(label, name):
-        return components.html(
-            f"""
-            <label>{label}</label><br>
-            <input type="number" inputmode="numeric" id="{name}" name="{name}" style="width:160px;"><br>
-            """,
-            height=60
-        )
+    # --- HTML input をJSで拾ってセッションに送る ---
+    systolic = streamlit_js_eval(js_expressions="document.getElementById('systolic')?.value", key="systolic")
+    diastolic = streamlit_js_eval(js_expressions="document.getElementById('diastolic')?.value", key="diastolic")
+    pulse = streamlit_js_eval(js_expressions="document.getElementById('pulse')?.value", key="pulse")
+    weight = streamlit_js_eval(js_expressions="document.getElementById('weight')?.value", key="weight")
+    fat = streamlit_js_eval(js_expressions="document.getElementById('fat')?.value", key="fat")
+    glucose = streamlit_js_eval(js_expressions="document.getElementById('glucose')?.value", key="glucose")
 
-    systolic = number_input_html("収縮期血圧 (mmHg)", "systolic")
-    diastolic = number_input_html("拡張期血圧 (mmHg)", "diastolic")
-    pulse = number_input_html("脈拍 (bpm)", "pulse")
-    weight = number_input_html("体重 (kg)", "weight")
-    fat = number_input_html("体脂肪率 (%)", "fat")
-    glucose = number_input_html("血糖値 (mg/dL)", "glucose")
+    # 実際の入力欄
+    st.markdown('<input type="number" inputmode="numeric" id="systolic" placeholder="収縮期血圧 (mmHg)">', unsafe_allow_html=True)
+    st.markdown('<input type="number" inputmode="numeric" id="diastolic" placeholder="拡張期血圧 (mmHg)">', unsafe_allow_html=True)
+    st.markdown('<input type="number" inputmode="numeric" id="pulse" placeholder="脈拍 (bpm)">', unsafe_allow_html=True)
+    st.markdown('<input type="number" inputmode="numeric" id="weight" placeholder="体重 (kg)">', unsafe_allow_html=True)
+    st.markdown('<input type="number" inputmode="numeric" id="fat" placeholder="体脂肪率 (%)">', unsafe_allow_html=True)
+    st.markdown('<input type="number" inputmode="numeric" id="glucose" placeholder="血糖値 (mg/dL)">', unsafe_allow_html=True)
 
     submitted = st.form_submit_button("保存")
 
     if submitted:
-        # ここで本来は JS から値をセッションに渡す仕組みが必要
-        # （streamlit-js-eval を使えば可能）
-        st.warning("⚠️ 現状は電卓キーボードは出ますが、保存するには JS → Streamlit への値バインディングを追加する必要があります。")
+        if not df.empty and str(date) in df["date"].astype(str).values:
+            st.error("⚠️ この日付のデータは既に存在します。")
+        else:
+            def to_number(x, cast_func):
+                try:
+                    return cast_func(x)
+                except:
+                    return None
+
+            row = [
+                str(date),
+                to_number(systolic, int),
+                to_number(diastolic, int),
+                to_number(pulse, int),
+                to_number(weight, float),
+                to_number(fat, float),
+                to_number(glucose, int)
+            ]
+            sheet.append_row(row)
+            st.success("✅ Googleスプレッドシートに保存しました！")
+
+            # 保存後に再読み込み
+            records = sheet.get_all_records()
+            df = pd.DataFrame(records)
+
+# --- 直近データ表示 ---
+st.subheader("📅 直近の記録（最新5件）")
+if not df.empty:
+    st.dataframe(df.tail(5))
+else:
+    st.info("まだ記録がありません。")
