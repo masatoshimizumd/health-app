@@ -28,13 +28,13 @@ st.subheader("新しいデータを追加")
 
 with st.form("input_form"):
 
-    # CSS（余白を詰める・入力欄統一デザイン）
+    # CSS（入力欄と日付を大きめにカスタマイズ）
     css_style = """
     <style>
     .input-row {
         display: flex;
-        gap: 12px;          /* 横並びの間隔 */
-        margin-bottom: 6px; /* 縦の余白（小さめ） */
+        gap: 12px;
+        margin-bottom: 6px;
         align-items: center;
     }
     .input-block {
@@ -44,23 +44,32 @@ with st.form("input_form"):
         font-size: 14px;
     }
     .input-block input {
-        width: 160px;
-        font-size: 18px;
-        padding: 6px;
+        width: 180px;
+        font-size: 20px;  /* 入力欄の文字を大きく */
+        padding: 8px;
         border-radius: 6px;
         border: 1px solid #ccc;
+    }
+    .date-block input {
+        width: 200px;
+        font-size: 22px;  /* 日付の文字をさらに大きく */
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #333;
+        font-weight: bold;
     }
     </style>
     """
     st.markdown(css_style, unsafe_allow_html=True)
 
-    # --- 日付 + 血圧2項目を1行に ---
+    # --- 日付 + 血圧2項目を横並びに配置 ---
+    today_str = datetime.date.today().strftime("%Y-%m-%d")
     st.markdown(
         f"""
         <div class="input-row">
-            <div class="input-block">
+            <div class="input-block date-block">
                 <label>日付</label>
-                <input type="date" id="date" value="{datetime.date.today()}">
+                <input type="date" id="date" value="{today_str}">
             </div>
             <div class="input-block">
                 <label>収縮期血圧 (mmHg)</label>
@@ -143,7 +152,7 @@ with st.form("input_form"):
             sheet.append_row(row)
             st.success("✅ Googleスプレッドシートに保存しました！")
 
-            # 再読み込み
+            # 保存後に再読み込み
             records = sheet.get_all_records()
             df = pd.DataFrame(records)
 
